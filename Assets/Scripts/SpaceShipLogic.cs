@@ -16,6 +16,7 @@ public class SpaceShipLogic : BiribitBehaviour
 	State m_tempState;
 	float time = 0.0f;
 	Quaternion gyroscope = Quaternion.identity;
+	const float MaxSpeed = 10.0f;
 
 	public override void Start()
 	{
@@ -78,9 +79,11 @@ public class SpaceShipLogic : BiribitBehaviour
 	private State UpdateStep(State currentState, float deltaTime)
 	{
 		State nextState = new State();
-		nextState.position = currentState.position + (currentState.rotation * Vector3.forward) * deltaTime;
-		nextState.rotation = Quaternion.Slerp(currentState.rotation, gyroscope, 0.5f);
-		nextState.speed = currentState.speed;
+		float realSpeed = (MaxSpeed * currentState.speed) / (currentState.speed + 1.0f);
+		nextState.position = currentState.position + (currentState.rotation * Vector3.forward) * deltaTime * realSpeed;
+		nextState.rotation = Quaternion.Slerp(currentState.rotation, gyroscope, deltaTime/(deltaTime + 0.1f));
+		float speedFactor = Quaternion.Dot(nextState.rotation, currentState.rotation);
+		nextState.speed = (currentState.speed + deltaTime) * speedFactor;
 		nextState.time = currentState.time + deltaTime;
 		return nextState;
 	}
